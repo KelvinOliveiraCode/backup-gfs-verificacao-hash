@@ -1,0 +1,20 @@
+[project]
+name = "backup-gfs-verificacao-hash"
+version = "0.1.0"
+description = "Backup GFS (avô-pai-filho) com hash SHA-256, restauração e verificação byte-a-byte"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+license = {text = "MIT"}
+authors = [{name = "Kelvin Oliveira"}]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
