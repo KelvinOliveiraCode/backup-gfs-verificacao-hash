@@ -2,7 +2,7 @@
 
 Backup GFS (avô-pai-filho) com hash SHA-256, restauração e verificação byte-a-byte, em Python.
 
-Projeto da área Suporte TI. O MVP implementa o ciclo avô-pai-filho (diário / semanal / mensal, simulado em `tmp_dir`), o cálculo de SHA-256, a restauração e a verificação byte-a-byte de um backup contra o original.
+Projeto da área Suporte TI. O MVP implementa o ciclo avô-pai-filho (diário / semanal / mensal, simulado em `tmp_dir`), o cálculo de SHA-256, a restauração e a verificação byte-a-byte de um backup contra o original. Todo o estado fica em arquivos no disco; não há banco de dados nem dependências externas.
 
 Critérios de aceitação: restauração OK, testes passando, README completa em PT-BR e EN.
 
@@ -10,23 +10,23 @@ Autor: Kelvin Oliveira — Licença: MIT
 
 ---
 
-# backup-gfs-verificacao-hash
-
-GFS backup (grandfather-father-son) with SHA-256 hashing, restore, and byte-by-byte verification, in Python.
-
-IT Support project. The MVP implements the grandfather-father-son cycle (daily / weekly / monthly, simulated in `tmp_dir`), SHA-256 computation, restore, and byte-by-byte verification of a backup against the original.
-
-Acceptance criteria: restore OK, tests passing, complete README in PT-BR and EN.
-
-Author: Kelvin Oliveira — License: MIT
-
----
-
 ## PT-BR
 
-### Como usar
+### O que o projeto faz
 
-Pré-requisitos: Python 3.10+ e pytest.
+- Cria backups de arquivos e diretórios em um diretório de destino.
+- Calcula SHA-256 de cada arquivo e de árvores completas, armazenado em `manifest.sha256` dentro de cada backup.
+- Rotaciona backups segundo a política GFS com retenção por tipo (diário, semanal, mensal).
+- Restaura um backup para um destino, substituindo o destino se já existir.
+- Verifica integridade byte-a-byte de um backup contra o original comparando o conjunto de arquivos e cada arquivo via SHA-256.
+
+### Requisitos
+
+- Python 3.10+
+- pytest (para executar os testes)
+- Nenhuma dependência externa além da biblioteca padrão do Python
+
+### Como usar
 
 Criar um backup de um arquivo:
 
@@ -68,65 +68,7 @@ python -m pytest -q
 
 Resultado: 26 testes passando. A suíte cobre SHA-256 de arquivo e árvore, criação de backup, inferência de tipo GFS, rotação por retenção, restauração de arquivo e diretório, verificação byte-a-byte e casos de erro (arquivo ausente, tipo inválido, retenção negativa).
 
-### Licença
-
-MIT
-
----
-
-## EN
-
-### How to use
-
-Requirements: Python 3.10+ and pytest.
-
-Create a backup of a file:
-
-```
-python -m backup_gfs create documento.pdf ./backups --at 2026-10-16T10:00:00Z
-```
-
-Create a backup of a directory:
-
-```
-python -m backup_gfs create ./pasta ./backups --kind monthly --at 2026-10-01T08:00:00Z
-```
-
-Rotate according to GFS retention:
-
-```
-python -m backup_gfs rotate ./backups --daily-keep 7 --weekly-keep 4 --monthly-keep 12
-```
-
-Restore a backup:
-
-```
-python -m backup_gfs restore ./backups/daily-20261016-100000 ./restaurado
-```
-
-Verify byte-by-byte integrity against the original:
-
-```
-python -m backup_gfs verify ./backups/daily-20261016-100000 ./documento.pdf
-```
-
-When not informed, the type (daily / weekly / monthly) is inferred from the date: day 1 = monthly, Sunday = weekly, other days = daily.
-
-### Tests
-
-```
-python -m pytest -q
-```
-
-Result: 26 tests passing. The suite covers SHA-256 of file and tree, backup creation, GFS type inference, retention-based rotation, file and directory restore, byte-by-byte verification, and error cases (missing file, invalid type, negative retention).
-
-### License
-
-MIT
-
----
-
-## Estrutura do projeto
+### Estrutura do projeto
 
 ```
 backup-gfs-verificacao-hash/
@@ -139,4 +81,10 @@ backup-gfs-verificacao-hash/
 └── tests/test_gfs.py
 ```
 
-O PowerShell está disponível no host, mas não foi necessário para o MVP: a CLI em Python cobre criar, rotacionar, restaurar e verificar. A parte PowerShell permanece opcional, conforme o brief.
+### Licença
+
+MIT
+
+### Autor
+
+Kelvin Oliveira
