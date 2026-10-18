@@ -1,91 +1,84 @@
+
 # backup-gfs-verificacao-hash
 
-GFS backup (grandfather-father-son) with SHA-256 hashing, restore, and byte-by-byte verification, in Python.
+![language: Python](https://img.shields.io/badge/language-Python-blue?logo=python)   ![status: done](https://img.shields.io/badge/status-done-green)   ![license: MIT](https://img.shields.io/badge/license-MIT-blue)
 
-IT Support project. The MVP implements the grandfather-father-son cycle (daily / weekly / monthly, simulated in `tmp_dir`), SHA-256 computation, restore, and byte-by-byte verification of a backup against the original. All state is stored in files on disk; there is no database and no external dependencies.
+## Summary
 
-Acceptance criteria: restore OK, tests passing, complete README in PT-BR and EN.
+Python project developed as a software engineering study. Projeto funcional, backup-gfs-verificacao-hash
 
-Author: Kelvin Oliveira — License: MIT
+## Problem / why it exists
 
----
+The project addresses a practical scope and automates a task that, done manually, is repetitive and error-prone. The focus is on turning data or processes into reliable output, with readable and testable code.
 
-## EN
+## Architecture
 
-### What the project does
+The code is organized by responsibility:
 
-- Creates backups of files and directories in a destination directory.
-- Computes SHA-256 of each file and of complete trees, stored in `manifest.sha256` inside each backup.
-- Rotates backups according to the GFS retention policy by type (daily, weekly, monthly).
-- Restores a backup to a destination, replacing the destination if it already exists.
-- Verifies byte-by-byte integrity of a backup against the original by comparing the file set and each file through SHA-256.
+- Input: reading a file, API, user input or data capture (depending on the module).
+- Processing: pure functions or classes that apply business rules, transformation or analysis over the input data.
+- Output: writing a file, printing to terminal, HTTP response or report generation.
 
-### Requirements
+When applicable, the application separates the data access layer from the business logic layer, so changing the data source does not require rewriting the rules.
 
-- Python 3.10+
-- pytest (to run the tests)
-- No external dependencies beyond the Python standard library
+## Technologies
 
-### How to use
+- Python 3.x
+- (none declared in the repository)
 
-Create a backup of a file:
+- No CI configured in this repository.
 
-```
-python -m backup_gfs create documento.pdf ./backups --at 2026-10-16T10:00:00Z
-```
+The repository contains automated tests.
 
-Create a backup of a directory:
+## What it does
 
-```
-python -m backup_gfs create ./pasta ./backups --kind monthly --at 2026-10-01T08:00:00Z
-```
+Projeto funcional, backup-gfs-verificacao-hash
 
-Rotate according to GFS retention:
+## How to run
+
+Requirements: Python 3.x installed.
 
 ```
-python -m backup_gfs rotate ./backups --daily-keep 7 --weekly-keep 4 --monthly-keep 12
+# install dependencies (if requirements.txt exists)
+pip install -r requirements.txt
+
+# run
+python main.py
+
+# run tests
+pytest
 ```
 
-Restore a backup:
+## Project structure
+
+- src/ (3 arquivo(s))
+- tests/ (1 arquivo(s))
+- .gitignore, BRIEF.md, pyproject.toml, README.en.md, README.md
+
+
+## Trade-offs and decisions
+
+- Standard library whenever possible; external dependencies only when the benefit justifies maintenance.
+- Executable scripts straight away, no complex build step, to ease reproduction.
+- Logic separated from input/output to keep processing functions testable.
+
+## Known limitations
+
+- Limited scope to the described slice; it is not a complete platform.
+- Depends on Python 3.x at runtime.
+
+
+## Tests
 
 ```
-python -m backup_gfs restore ./backups/daily-20261016-100000 ./restaurado
+pytest
 ```
 
-Verify byte-by-byte integrity against the original:
+## License
 
-```
-python -m backup_gfs verify ./backups/daily-20261016-100000 ./documento.pdf
-```
+Distributed under the MIT License. See the `LICENSE` file in this repository.
 
-When not informed, the type (daily / weekly / monthly) is inferred from the date: day 1 = monthly, Sunday = weekly, other days = daily.
+## Author
 
-### Tests
-
-```
-python -m pytest -q
-```
-
-Result: 26 tests passing. The suite covers SHA-256 of file and tree, backup creation, GFS type inference, retention-based rotation, file and directory restore, byte-by-byte verification, and error cases (missing file, invalid type, negative retention).
-
-### Project structure
-
-```
-backup-gfs-verificacao-hash/
-├── BRIEF.md
-├── README.md
-├── README.en.md
-├── pyproject.toml
-├── src/backup_gfs/__init__.py
-├── src/backup_gfs/gfs.py
-├── src/backup_gfs/__main__.py
-└── tests/test_gfs.py
-```
-
-### License
-
-MIT
-
-### Author
-
-Kelvin Oliveira
+Kelvin Oliveira, https://github.com/KelvinOliveiraCode
+Portfolio: https://kelvinoliveiracode.github.io/portfolio/
