@@ -1,118 +1,95 @@
 # backup-gfs-verificacao-hash
 
-<div align="center">
-
 [English](README.en.md) · **Português (Brasil)**
 
-</div>
-
-[![Python 3](https://img.shields.io/badge/Python-3.x-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/) [![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?style=flat-square&logo=scikit-learn)](https://scikit-learn.org/) [![pandas](https://img.shields.io/badge/pandas-150458?style=flat-square&logo=pandas)](https://pandas.pydata.org/) [![pytest](https://img.shields.io/badge/pytest-0A9EDC?style=flat-square&logo=pytest)](https://docs.pytest.org/) [![MIT License](https://img.shields.io/badge/License-MIT-f4c430?style=flat-square)](LICENSE)
-
-### Projeto funcional ,  backup-gfs-verificacao-hash
-
----
+[![Python 3](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white)](#) [![pytest](https://img.shields.io/badge/pytest-26%20testes-0A9EDC?style=flat-square&logo=pytest)](#) [![MIT License](https://img.shields.io/badge/License-MIT-f4c430?style=flat-square)](LICENSE)
 
 ## O que é
 
-Projeto funcional ,  backup-gfs-verificacao-hash
+**Backup com retenção GFS e verificação de integridade por hash**: cria backups de uma pasta, rotaciona pela política **GFS** (grandfather–father–son: mensais, semanais e diários com limites configuráveis), restaura e **verifica byte a byte** contra o original via **SHA-256** da árvore de arquivos. É um laboratório educacional de rotina de backup em Python puro (stdlib).
 
----
+## Status
 
-## Início Rápido
+Laboratório educacional funcional e testado (26 testes).
 
-```bash
-# Clone e entre
-git clone https://github.com/KelvinOliveiraCode/<repo>.git
-cd <repo>
+## Funcionalidades
 
-# Instale dependências
-# Nenhum requirements.txt detectado
+- **Backup** (`gfs.py`): `make_backup(source, backup_root, kind, at)` — copia a árvore e registra `BackupInfo` (kind: daily/weekly/monthly, timestamp ISO 8601).
+- **Rotação GFS** (`rotate`): mantém os N mais recentes por classe (`--daily-keep/--weekly-keep/--monthly-keep`) e devolve um `RotateReport` com mantidos/removidos.
+- **Restauração** (`restore(backup, destination)`).
+- **Verificação** (`verify(backup, original)`): compara a **árvore SHA-256** (`sha256_tree`) antes de declarar integridade; `VerifyResult` com o resultado byte a byte.
+- **CLI** (`__main__.py`): `create`, `rotate`, `restore`, `verify`.
 
-# Execute o projeto
-python main.py
+## Arquitetura
 
-# Execute os testes
-pytest
+Pacote `backup_gfs` com todo o núcleo em `gfs.py` (info/rotação/restore/hash) e a CLI em `__main__.py`. Nada de serviço externo: backups são pastas locais.
+
+```mermaid
+flowchart LR
+    ORIG[pasta original] -->|"create --kind daily/weekly/monthly"| BK[backup_root/kind-timestamp]
+    BK --> ROT[rotate - GFS keep N/dia·semana·mês]
+    BK --> V[verify - SHA-256 da árvore]
+    ORIG --> V
+    BK --> RE[restore -> destino]
+    CLI[bkp-gfs create/rotate/restore/verify] --> ORIG
 ```
 
-## Como funciona
+## Stack
 
-Estrutura limpa e modular com separação de responsabilidades.
+- Python ≥ 3.10, stdlib apenas (hashlib, shutil)
+- pytest (dev)
 
----
+## Estrutura do repositório
 
-## Capacidades
+```
+backup-gfs-verificacao-hash/
+├── pyproject.toml · BRIEF.md
+├── src/backup_gfs/
+│   ├── gfs.py         # backup/rotação GFS/hashes
+│   └── __main__.py    # CLI create/rotate/restore/verify
+├── tests/             # 26 testes
+└── LICENSE            # MIT
+```
 
-| Capacidade | Descrição |
-|------------|-------------|
-| Carregamento de Dados | Auto-download do TensorFlow creditcard.csv (284k transações) com cache local |
-| EDA e Visualização | Distribuição de classes, histogramas de Amount, heatmaps de correlação (matplotlib/seaborn) |
-| Pré-processamento | RobustScaler em Amount/Time, split estratificado, remoção de duplicatas |
-| Balanceamento | SMOTE oversampling (fallback: class_weight="balanced") |
-| Modelagem | LogisticRegression, RandomForest, ExtraTrees com RandomizedSearchCV (StratifiedKFold) |
-| Métricas | Accuracy, Precision, Recall, F1, ROC AUC, Specificity, Confusion Matrix |
-| Seleção | Score ponderado: Recall 40% + F1 30% + Precision 20% + Accuracy 10% |
-| Persistência | Serialização joblib para modelo, scaler e resultados completos |
+## Pré-requisitos e instalação
 
+```bash
+pip install -e .
+```
 
----
+## Como executar
 
+```bash
+python -m backup_gfs create <origem> <backup_root> --kind daily
+python -m backup_gfs rotate <backup_root> --daily-keep 7 --weekly-keep 4 --monthly-keep 6
+python -m backup_gfs restore <backup> <destino>
+python -m backup_gfs verify <backup> <origem>
+```
 
+## Testes e qualidade
 
----
+Comando real (verificado pelo agente):
 
-## Perguntas Frequentes
+```bash
+PYTHONPATH=src python -m pytest tests/
+# 26 passed
+```
 
-<details>
-<summary><strong>O que é este projeto?</strong></summary>
+## Decisões técnicas e trade-offs
 
-Um estudo/projeto em Python demonstrando conceitos fundamentais.
+- **Verificação por árvore SHA-256** (caminho relativo + hash): detecta qualquer diferença byte a byte; em troca, releia os arquivos a cada verificação.
+- **GFS com limites por classe**: retenção previsível e barata; sem deduplicação ou compressão.
+- **Timestamps injetáveis** (`--at` ISO 8601): testes determinísticos sem dormidas.
 
-</details>
+## Limitações conhecidas e roadmap
 
-<details>
-<summary><strong>Como executar?</strong></summary>
+- Sem compressão, criptografia ou envio remoto (tudo local).
+- Rotação considera apenas o timestamp declarado no backup (não detecta backup copiado por fora).
 
-Veja [Início Rápido](#início-rápido) para comandos copiáveis.
+## Processo de desenvolvimento
 
-</details>
+Projeto individual de Kelvin Oliveira, construído com agentes de IA orquestrados e revisado pelo autor.
 
-<details>
-<summary><strong>Há testes?</strong></summary>
+## Licença e autor
 
-Nenhum teste automatizado neste repositório.
-
-</details>
-
-<details>
-<summary><strong>Posso usar em produção?</strong></summary>
-
-Este é um **projeto de estudo/portfólio**. Revise e endureça (auth, persistência, monitoramento, etc.) antes de usar em produção.
-
-</details>
-
-
-
----
-
-## Documentação
-
-- **Código-Fonte** ,  Navegue pelo diretório `src/` para detalhes de implementação
-- **Referência da API** ,  Docstrings inline + type hints
-- **Diagrama de Arquitetura** ,  Veja [architecture.mermaid](docs/architecture.mermaid) (se presente)
-- **Changelog** ,  [CHANGELOG.md](CHANGELOG.md) (se presente)
-- **Contribuindo** ,  [CONTRIBUTING.md](CONTRIBUTING.md) (se presente)
-
-## Licença
-
-[MIT](LICENSE) ,  Kelvin Oliveira
-
----
-
-<div align="center">
-
-**Construído com** · Python 3 + scikit-learn + pandas
-
-**Autor** · [Kelvin Oliveira](https://github.com/KelvinOliveiraCode) · [Portfolio](https://kelvinoliveiracode.github.io/portfolio/)
-
-</div>
+MIT — Copyright (c) 2026 Kelvin Rebelo de Oliveira. Autor: [Kelvin Oliveira](https://github.com/KelvinOliveiraCode) · [Portfólio](https://kelvinoliveiracode.github.io/portfolio/)
